@@ -51,14 +51,7 @@ class Hotel(Resource):
     def post(self, hotel_id):
 
         data = Hotel.arguments.parse_args()
-
-        new_hotel = {
-            'hotel_id': hotel_id,
-            'name': data['name'],
-            'rank': data['rank'],
-            'daily': data['daily'],
-            'city': data['city']
-        }
+        new_hotel = { 'hotel_id': hotel_id, **data }
 
         hotels.append(new_hotel)
         return new_hotel, 200 #Ok alert
@@ -76,4 +69,6 @@ class Hotel(Resource):
         return new_hotel, 201 #Created alert
 
     def delete(self, hotel_id):
-        pass
+        global hotels
+        hotels = [hotel for hotel in hotels if hotel['hotel_id'] != hotel_id]
+        return {'message': 'Hotel deleted.'}
