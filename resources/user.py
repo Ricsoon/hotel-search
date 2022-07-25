@@ -18,3 +18,17 @@ class User(Resource):
                 return {'message': 'An internal error ocurrred trying to delete user.'}, 500 #Internal Server Error
             return {'message': 'User deleted.'}
         return {'message': 'User not found.'}, 404 #Not Found
+
+class UserRegister(Resource):
+    def post(self):
+        attributes = reqparse.RequestParser()
+        attributes.add_argument('login', type=str, required=True, help="The field 'login' cannot be left blank.")
+        attributes.add_argument('password', type=str, required=True, help="The field 'password' cannot be left blank.")
+        data = attributes.parse_args()
+
+        if UserModel.find_by_login(data['login']):
+            return {"message": "The login '{}' already exist.".format(data['login'])}
+
+        user = UserModel(**data)
+        user.save_user()
+        return {'message': 'User created successfully.'}, 201 #Created
