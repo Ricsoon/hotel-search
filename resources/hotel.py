@@ -1,30 +1,6 @@
 from flask_restful import Resource, reqparse
 from models.hotel import HotelModel
 
-hotels = [
-    {
-        'hotel_id': 'alpha',
-        'name': 'Alpha Hotel',
-        'rank': 4.3,
-        'daily': 450.23,
-        'city': 'Rio de Janeiro'
-    },
-    {
-        'hotel_id': 'bravo',
-        'name': 'Bravo Hotel',
-        'rank': 3.8,
-        'daily': 250.60,
-        'city': 'São Paulo'
-    },
-    {
-        'hotel_id': 'charlie',
-        'name': 'Charlie Hotel',
-        'rank': 5.0,
-        'daily': 500.50,
-        'city': 'Recife'
-    }
-]
-
 class Hotels(Resource):
     def get(self):
         return {'hotels': [hotel.json() for hotel in HotelModel.query.all()]}
@@ -32,8 +8,8 @@ class Hotels(Resource):
 class Hotel(Resource):
 
     arguments = reqparse.RequestParser()
-    arguments.add_argument('name')
-    arguments.add_argument('rank')
+    arguments.add_argument('name', type=str, required=True, help="The field 'name' cannot be left blank.")
+    arguments.add_argument('rank', type=float, required=True, help="The field 'rank' cannot be left blank.")
     arguments.add_argument('daily')
     arguments.add_argument('city')
 
@@ -50,6 +26,10 @@ class Hotel(Resource):
         data = Hotel.arguments.parse_args()
         hotel = HotelModel(hotel_id, **data)
         hotel.save_hotel()
+        try:
+            hotel.save_hotel()
+        except:
+            return {'message': 'An internal error ocurrred trying to save hotel.'}, 500 #Internal Server Error
         return hotel.json()
         
 
@@ -62,12 +42,18 @@ class Hotel(Resource):
             hotel_found.save_hotel()
             return hotel_found.json(), 200 #Ok alert
         hotel = HotelModel(hotel_id, **data)
-        hotel.save_hotel()
+        try:
+            hotel.save_hotel()
+        except:
+            return {'message': 'An internal error ocurrred trying to save hotel.'}, 500 #Internal Server Error
         return hotel.json(), 201 #Created alert
 
     def delete(self, hotel_id):
         hotel = HotelModel.find_hotel(hotel_id)
         if hotel:
-            hotel.delete_hotel()
+            try:
+                hotel.delete_hotel()
+            except:
+                return {'message': 'An internal error ocurrred trying to delete hotel.'}, 500 #Internal Server Error
             return {'message': 'Hotel deleted.'}
         return {'message': 'Hotel not found.'}, 404 #Not Found
