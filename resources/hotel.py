@@ -1,27 +1,8 @@
 from flask_restful import Resource, reqparse
 from models.hotel import HotelModel
+from resources.filters import normalize_path_params, query_without_city, query_with_city
 from flask_jwt_extended import jwt_required
 import sqlite3
-
-def normalize_path_params(city=None, rank_min=0,rank_max=5, daily_min=0, daily_max=10000, limit=50, offset=0, **data):
-    if city:
-        return {
-            "rank_min": rank_min,
-            "rank_max": rank_max,
-            "daily_min": daily_min,
-            "daily_max": daily_max,
-            "city": city,
-            "limit": limit,
-            "offset": offset
-        }
-    return {
-            "rank_min": rank_min,
-            "rank_max": rank_max,
-            "daily_min": daily_min,
-            "daily_max": daily_max,
-            "limit": limit,
-            "offset": offset
-        }
 
 # Path example -> /hotels?city=Recife&rank_min=4&daily_max=400
 path_params = reqparse.RequestParser()
@@ -43,13 +24,11 @@ class Hotels(Resource):
         parameters = normalize_path_params(**valid_data,)
 
         if not parameters.get('city'):
-            query = "SELECT * FROM hotels WHERE (rank >= ? and rank <= ?) and (daily >= ? and daily <= ?) LIMIT ? OFFSET ?"
             tupla = tuple([parameters[key] for key in parameters])
-            result = cursor.execute(query, tupla)
+            result = cursor.execute(query_without_city, tupla)
         else:
-            query = "SELECT * FROM hotels WHERE (rank >= ? and rank <= ?) and (daily >= ? and daily <= ?) and city = ? LIMIT ? OFFSET ?"
             tupla = tuple([parameters[key] for key in parameters])
-            result = cursor.execute(query, tupla)
+            result = cursor.execute(query_with_city, tupla)
         
         hotels = []
         for row in result:
