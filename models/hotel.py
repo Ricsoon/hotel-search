@@ -1,3 +1,4 @@
+from sqlalchemy import ForeignKey
 from sql_alchemy import banco
 
 class HotelModel(banco.Model):
@@ -8,13 +9,15 @@ class HotelModel(banco.Model):
     rank = banco.Column(banco.Float(precision=1))
     daily = banco.Column(banco.Float(precision=2))
     city = banco.Column(banco.String(40))
+    site_id = banco.Column(banco.Integer, ForeignKey('sites.site_id'))
 
-    def __init__(self, hotel_id, name, rank, daily, city):
+    def __init__(self, hotel_id, name, rank, daily, city, site_id):
         self.hotel_id = hotel_id
         self.name = name
         self.rank = rank
         self.daily = daily
         self.city = city
+        self.site_id = site_id
     
     def json(self):
         return {
@@ -22,7 +25,8 @@ class HotelModel(banco.Model):
             'name': self.name,
             'rank': self.rank,
             'daily': self.daily,
-            'city': self.city
+            'city': self.city,
+            'site_id': self.site_id
         }
 
     @classmethod
